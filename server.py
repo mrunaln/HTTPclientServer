@@ -9,6 +9,7 @@ A simple echo server
 """ 
 
 import socket 
+import time
 CRLF = "\r\n"
 
 
@@ -37,6 +38,21 @@ class server():
       return "image/jpg"
     else:
       return "text/plain"
+  
+  def generateHeaders(self,code, filepath):
+    if (code == 200):
+      h = 'HTTP/1.1 200 OK' + CRLF
+    elif(code == 404):
+      h = 'HTTP/1.1 404 Not Found'+ CRLF
+
+    current_date = time.strftime("%a, %d %b %Y %H:%M:%S",time.localtime())
+    h += 'Date: ' + current_date + CRLF
+    h += 'Content-Type:' + self.getContentType(filepath);
+    h += 'Server: Simple-Python-HTTP-Server' + CRLF
+    h += 'Connection: close' + '\n\n' 
+    # signal that the conection wil be closed after complting the request
+
+    return h
 
 
   def sendResponse(self,sock) :
@@ -56,11 +72,13 @@ class server():
             filepath = data[1]
             filepath = filepath[1:]
             contentType = filepath.split(".")
-            print filepath
+          #  print filepath
+          
             try:
                 f = open(filepath,'r')
-                contentType = self.getContentType(filepath);
-                HTTPresponse ="HTTP/1.1 200 OK" + CRLF +"Date: Fri, 31 Dec 1999 23:59:59 GM"+ CRLF +"Content-Type:" + contentType + CRLF + CRLF + f.read()
+                HTTPresponse = self.generateHeaders(200,filepath) 
+                HTTPresponse += CRLF + CRLF + f.read()
+              #HTTPresponse ="HTTP/1.1 200 OK" + CRLF +"Date: Fri, 31 Dec 1999 23:59:59 GM"+ CRLF +"Content-Type:" + contentType + CRLF + CRLF + f.read()
                 print "Logd : Found file. Sending it !"
                 client.send(HTTPresponse)
                 f.close()
