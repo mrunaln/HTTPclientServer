@@ -16,13 +16,13 @@ CRLF = "\r\n"
 class server():
   
   def __init__ (self):
-    print "Logd : __init__ "
+    print "Logd : Lauching HTTP Server"
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
     s.bind(("localhost",60001)) 
     self.sendResponse(s)
 
   def getContentType(self,fileName):
-    print "Logd : getContentType"
+    print "Logd : constructing header "
     contentType = fileName.split(".")
     if contentType[1] == "html":
       return "text/html"
@@ -40,6 +40,7 @@ class server():
       return "text/plain"
   
   def generateHeaders(self,code, filepath):
+    print "Logd : constructing header "
     if (code == 200):
       h = 'HTTP/1.1 200 OK' + CRLF
     elif(code == 404):
@@ -68,35 +69,33 @@ class server():
       print "data = " + data[0] + " data [1] " + data[1] 
       # If Get then open the file and send the data 
       if data[0] == "GET" or data[0] == "Get" or data[0] == "get":
-            print "Logd : GET "
+            print "Handling GET Request "
             filepath = data[1]
             filepath = filepath[1:]
             contentType = filepath.split(".")
           #  print filepath
           
             try:
-                f = open(filepath,'r')
+                fileHandler = open(filepath,'r')
                 HTTPresponse = self.generateHeaders(200,filepath) 
-                HTTPresponse += CRLF + CRLF + f.read()
-              #HTTPresponse ="HTTP/1.1 200 OK" + CRLF +"Date: Fri, 31 Dec 1999 23:59:59 GM"+ CRLF +"Content-Type:" + contentType + CRLF + CRLF + f.read()
-                print "Logd : Found file. Sending it !"
+                HTTPresponse += CRLF + CRLF + fileHandler.read()
+                print " Found file. Sending it !"
                 client.send(HTTPresponse)
-                f.close()
+                fileHandler.close()
             #If file not found then send 404 message
             except (OSError, IOError ) as e :
                 HTTPresponse = "HTTP/1.1 404 Not Found"+ CRLF + "Date: Fri, 31 Dec 1999 23:59:59 GM"+ CRLF + "Content-Type:" + contentType[1]
-                print "Logd : File NOT Found. Sending error !"
+                print "Warning : File NOT Found. Sending error !"
                 client.send(HTTPresponse)
             client.close();
       
       
       #If Put then ...
       elif data[0] ==  "PUT" or data[0] == "Put" or data[0] == "put":
-            print "Logd : OUT "
+            print "Handling Put Request"
             client.close();
-      
-      else:
-            print "Default case"
+     else:
+       print  "Unknown HTTP Request method"
              
 
 
