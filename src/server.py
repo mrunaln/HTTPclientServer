@@ -10,6 +10,8 @@ A simple echo server
 
 import socket 
 import time
+import signal
+
 defaultPath = "../WebContent/"
 CRLF = "\r\n"
 
@@ -17,16 +19,34 @@ CRLF = "\r\n"
 class server():
   
   def __init__ (self):
-    print "Logd : Lauching HTTP Server\n"
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+    self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
     #FIXME port number should be taken from command line
     # Check port no is greater than 5000
+    
     #FIXME - surround bind with try catch if port not correct and gracefully shutdown
-    s.bind(("localhost",60001))
+    try :
+        print "Logd : Lauching HTTP Server\n"
+        self.s.bind(("localhost",60001))
+    except Exception as e :
+      print "Logd : ERROR - Failed to socket "
+      self.shutdown()
+      import sys
+      sys.exit(1)
 
     print "Logd : Server successfully working activated\n"
     print "Log.d Press ctrl + c to shutdown and exit\n"
-    self.sendResponse(s)
+    self.sendResponse(self.s)
+
+
+  def shutdown(self):
+    try:
+      print("Shutting down the server")
+      self.socket.shutdown(socket.SHUT_RDWR)
+    except Exception as e:
+       print "Warning: could not shut down the socket. Maybe it was already closed ? "
+
+
+
 
   def getContentType(self,fileName):
     print "Logd : constructing header\n"
@@ -43,6 +63,10 @@ class server():
       return "image/png"
     elif contentType[1] == "jpg":
       return "image/jpg"
+    elif contentType[1] == "mp4":
+      return "video/mpeg"
+    elif contentType[1] == "mp3":
+      return "audio/x-mpeg-3"
     else:
       return "text/plain"
   
@@ -55,9 +79,10 @@ class server():
 
     current_date = time.strftime("%a, %d %b %Y %H:%M:%S",time.localtime())
     h += 'Date: ' + current_date + CRLF
-    h += 'Content-Type:' + self.getContentType(filepath);
-    h += 'Server: Simple-Python-HTTP-Server' + CRLF
-    h += 'Connection: close' + '\n\n' 
+    h += 'Connection: keep-alive' + CRLF
+    h += 'Content-Type: ' + self.getContentType(filepath) + CRLF
+    h += 'Server: Simple-Python-HTTP-Server' + CRLF + "\n\n"
+    #h += 'Connection: close' + '\n\n' 
     # signal that the conection wil be closed after complting the request
 
     return h
@@ -110,4 +135,13 @@ class server():
      # FIXME graceful shutdown when on termination signal
      # close all sockets
 
+
+def graceful_shutdown(sig, dummy):
+  print "Received an interupt: Shutting down "
+  thisServer.shutdown()
+  import sys
+  sys.exit(0)
+
+signal.signal(signal.SIGINT, graceful_shutdown)
 thisServer = server()
+
