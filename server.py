@@ -16,13 +16,19 @@ CRLF = "\r\n"
 class server():
   
   def __init__ (self):
-    print "Logd : Lauching HTTP Server"
+    print "Logd : Lauching HTTP Server\n"
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-    s.bind(("localhost",60001)) 
+    #FIXME port number should be taken from command line
+    # Check port no is greater than 5000
+    #FIXME - surround bind with try catch if port not correct and gracefully shutdown
+    s.bind(("localhost",60001))
+
+    print "Logd : Server successfully working activated\n"
+    print "Log.d Press ctrl + c to shutdown and exit\n"
     self.sendResponse(s)
 
   def getContentType(self,fileName):
-    print "Logd : constructing header "
+    print "Logd : constructing header\n"
     contentType = fileName.split(".")
     if contentType[1] == "html":
       return "text/html"
@@ -40,7 +46,7 @@ class server():
       return "text/plain"
   
   def generateHeaders(self,code, filepath):
-    print "Logd : constructing header "
+    print "Logd : constructing header\n"
     if (code == 200):
       h = 'HTTP/1.1 200 OK' + CRLF
     elif(code == 404):
@@ -58,8 +64,8 @@ class server():
 
   def sendResponse(self,sock) :
 
-    print "Logd : sendResponse"
     while 1:
+      print "Logd : Listening to request from client \n"
       sock.listen(1) 
       client, address = sock.accept() 
       size = 1025
@@ -93,11 +99,13 @@ class server():
       #If Put then ...
       elif data[0] ==  "PUT" or data[0] == "Put" or data[0] == "put":
             print "Handling Put Request"
+            #If TEXT file then open file & write the contents in the file
             client.close();
      else:
        print  "Unknown HTTP Request method"
              
 
-
+     # FIXME graceful shutdown when on termination signal
+     # close all sockets
 
 thisServer = server()

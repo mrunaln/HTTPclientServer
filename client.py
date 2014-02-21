@@ -18,6 +18,7 @@ class client():
       print "Connecting client to server"
       s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
       s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+      #Check if 4 arguments are provided before starting all the process
       host = sys.argv[1] 
       port = sys.argv[2] 
       s.connect((host,int(port)))
