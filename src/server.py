@@ -14,6 +14,9 @@ import signal
 
 defaultPath = "../WebContent/"
 CRLF = "\r\n"
+HTTPprotocol = "HTTP/1.1"
+validHTTPRequestGet = ['Get','GET', 'get' ]
+validHTTPRequestPut = [ 'Put', 'PUT', 'put' ]
 
 
 class server():
@@ -23,7 +26,6 @@ class server():
     #FIXME port number should be taken from command line
     # Check port no is greater than 5000
     
-    #FIXME - surround bind with try catch if port not correct and gracefully shutdown
     try :
         print "Lauching HTTP Server\n"
         self.s.bind(("localhost",60001))
@@ -69,22 +71,22 @@ class server():
       return "audio/x-mpeg-3"
     else:
       return "text/plain"
-  
+ 
+
   def generateHeaders(self,code, filepath):
     print "Constructing header\n"
     if (code == 200):
       h = 'HTTP/1.1 200 OK' + CRLF
+      h += 'Connection: keep-alive' + CRLF
     elif(code == 404):
       h = 'HTTP/1.1 404 Not Found'+ CRLF
+      h += 'Connection: close' + CRLF
 
     current_date = time.strftime("%a, %d %b %Y %H:%M:%S",time.localtime())
     h += 'Date: ' + current_date + CRLF
-    h += 'Connection: keep-alive' + CRLF
     h += 'Content-Type: ' + self.getContentType(filepath) + CRLF
     h += 'Server: Simple-Python-HTTP-Server' + CRLF + "\n\n"
-
     return h
-
 
   def sendResponse(self,sock) :
 
@@ -98,33 +100,48 @@ class server():
       data = data.split(" ")
       print "data = " + data[0] + " data [1] " + data[1] 
       # If Get then open the file and send the data 
-      if data[0] == "GET" or data[0] == "Get" or data[0] == "get":
+      if data[0] in validHTTPRequestGet:
             print "Handling GET Request "
             filepath = data[1]
             filepath = filepath[1:]
+            print filepath + "\n"
             contentType = filepath.split(".")
-          #  print filepath
           
             try:
-                print defaultPath + filepath
                 fileHandler = open(defaultPath+filepath,'r')
                 HTTPresponse = self.generateHeaders(200,  filepath) 
                 HTTPresponse += CRLF + CRLF + fileHandler.read()
-                print "Found file. Sending it !"
+                print " Found file. Sending it !"
                 client.send(HTTPresponse)
                 fileHandler.close()
             #If file not found then send 404 message
             except (OSError, IOError ) as e :
-                HTTPresponse = "HTTP/1.1 404 Not Found"+ CRLF + "Date: Fri, 31 Dec 1999 23:59:59 GM"+ CRLF + "Content-Type:" + contentType[1]
+                HTTPresponse = self.generateHeaders(400,  filepath) 
                 print "Warning : File NOT Found. Sending error !"
                 client.send(HTTPresponse)
             client.close();
       
       
-      #If Put then ...
-      elif data[0] ==  "PUT" or data[0] == "Put" or data[0] == "put":
+      elif data[0] in validHTTPRequestPut:
             print "Handling Put Request"
             #If TEXT file then open file & write the contents in the file
+            filepath = data[1]
+            filepath = filepath[1:]
+            contentType = filepath.split(".")
+
+            try:
+              fileHandler = open(defaultPath + "serverPut/" + filepath, 'w')
+              payload =  data[6]
+              #print "Writing " + data[6] + "to file"
+              fileHandler.write(data[6])
+              fileHandler.close()
+              print "Writing successful closing socket"
+              HTTPresponse = "HTTP/1.1 201 Created"
+              client.send(HTTPresponse)
+              print "Sent response to client. PUT SUCCESSFUL "
+            except Exception as e :
+              print "Exception while put  " 
+              print e
             client.close();
       else:
             print  "Unknown HTTP Request method"

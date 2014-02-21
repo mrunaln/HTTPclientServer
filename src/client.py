@@ -3,6 +3,8 @@
 # email - mnargund@uncc,edu
 #!/usr/bin/env python 
 
+# Client.py 
+
 import sys
 
 """ 
@@ -11,6 +13,9 @@ A simple echo client
 
 import socket 
 CRLF = '\r\n'
+HTTPprotocol = 'HTTP/1.1'
+validHTTPRequestGet = ['Get','GET', 'get' ]
+validHTTPRequestPut = [ 'Put', 'PUT', 'put' ]
 
 class client():
 
@@ -19,20 +24,55 @@ class client():
       s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
       s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
       #Check if 4 arguments are provided before starting all the process
+      if sys.argv[1] not in ['localhost']:
+        print "Error: Please enter localhost as your first argument\n"
+        sys.exit(0)
+      if sys.argv[2] < 5000 :
+        print "Error :" + sys.argv[2] + " is a reserved port\n. Please enter a port higher than 5000\n "
+        sys.exit(0)
+      if sys.argv[3] not in validHTTPRequestGet + validHTTPRequestPut :
+        print "Error : Invalid HTTP Request method " + sys.argv[3] + "\n"
+        sys.exit(0)
+      if sys.argv[4] in ['/']:
+        sys.argv[4] = "/index.html"
+
       host = sys.argv[1] 
       port = sys.argv[2] 
       s.connect((host,int(port)))
       self.sendRequest(s)
 
   def sendRequest(self, socket):
-      print "Sending request to server"
+      print "Sending request to server\n"
       HTTPcommand = sys.argv[3]
       filePath = sys.argv[4]
-      socket.send(HTTPcommand + " " + filePath + " HTTP/1.1\r\n\r\n") 
+      if HTTPcommand in validHTTPRequestGet :
+        socket.send(HTTPcommand + " " + filePath + " "+  HTTPprotocol + "\r\n\r\n") 
+        size = 1024 
+        data = socket.recv(size) 
+        socket.close() 
+        print 'Received:', data
+      elif HTTPcommand in validHTTPRequestPut:
+        fileHandler = open("../WebContent" + filePath, "r")
+        print "Reading data from file to send payload to server\n"
+        payload = fileHandler.read()
+        socket.send(
+            HTTPcommand + " " + filePath + " "+  HTTPprotocol + "\r\n" + 
+            "Host: my simple client\r\n" +
+            "{ \r\n" +
+            payload +
+            "} \r\n"
+            )
+        print "Sent data to server\n "
+        size = 1024
+        response = " "
+        while True:
+          response = socket.recv(size)
+          if response != " ":
+            break
 
-      size = 1024 
-      data = socket.recv(size) 
-      socket.close() 
-      print 'Received:', data
-  
+        print "Response recieved from server = " + response
+        socket.close() 
+        
+
+
 client = client()
