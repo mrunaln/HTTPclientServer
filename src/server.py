@@ -21,14 +21,12 @@ validHTTPRequestPut = [ 'Put', 'PUT', 'put' ]
 
 class server():
   
-  def __init__ (self):
+  def __init__ (self , port=60002):
     self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-    #FIXME port number should be taken from command line
-    # Check port no is greater than 5000
     
     try :
         print "Lauching HTTP Server\n"
-        self.s.bind(("localhost",60001))
+        self.s.bind(("localhost",port))
     except Exception as e :
       print "ERROR - Failed to socket "
       self.shutdown()
@@ -100,12 +98,12 @@ class server():
       data = data.split(" ")
       print "data = " + data[0] + " data [1] " + data[1] 
       # If Get then open the file and send the data 
+      filepath = data[1]
+      filepath = filepath[1:]
+      print filepath + "\n"
+      contentType = filepath.split(".")
       if data[0] in validHTTPRequestGet:
             print "Handling GET Request "
-            filepath = data[1]
-            filepath = filepath[1:]
-            print filepath + "\n"
-            contentType = filepath.split(".")
           
             try:
                 fileHandler = open(defaultPath+filepath,'r')
@@ -155,5 +153,5 @@ def graceful_shutdown(sig, dummy):
   sys.exit(0)
 
 signal.signal(signal.SIGINT, graceful_shutdown)
-thisServer = server()
+thisServer = server(60002)
 
