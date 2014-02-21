@@ -25,16 +25,16 @@ class server():
     
     #FIXME - surround bind with try catch if port not correct and gracefully shutdown
     try :
-        print "Logd : Lauching HTTP Server\n"
+        print "Lauching HTTP Server\n"
         self.s.bind(("localhost",60001))
     except Exception as e :
-      print "Logd : ERROR - Failed to socket "
+      print "ERROR - Failed to socket "
       self.shutdown()
       import sys
       sys.exit(1)
 
-    print "Logd : Server successfully working activated\n"
-    print "Log.d Press ctrl + c to shutdown and exit\n"
+    print "Server successfully working activated\n"
+    print "Press ctrl + c to shutdown and exit\n"
     self.sendResponse(self.s)
 
 
@@ -49,7 +49,7 @@ class server():
 
 
   def getContentType(self,fileName):
-    print "Logd : constructing header\n"
+    print "Constructing header\n"
     contentType = fileName.split(".")
     if contentType[1] == "html":
       return "text/html"
@@ -71,7 +71,7 @@ class server():
       return "text/plain"
   
   def generateHeaders(self,code, filepath):
-    print "Logd : constructing header\n"
+    print "Constructing header\n"
     if (code == 200):
       h = 'HTTP/1.1 200 OK' + CRLF
     elif(code == 404):
@@ -82,8 +82,6 @@ class server():
     h += 'Connection: keep-alive' + CRLF
     h += 'Content-Type: ' + self.getContentType(filepath) + CRLF
     h += 'Server: Simple-Python-HTTP-Server' + CRLF + "\n\n"
-    #h += 'Connection: close' + '\n\n' 
-    # signal that the conection wil be closed after complting the request
 
     return h
 
@@ -91,7 +89,7 @@ class server():
   def sendResponse(self,sock) :
 
     while 1:
-      print "Logd : Listening to request from client \n"
+      print "Listening to request from client \n"
       sock.listen(1) 
       client, address = sock.accept() 
       size = 1025
@@ -112,7 +110,7 @@ class server():
                 fileHandler = open(defaultPath+filepath,'r')
                 HTTPresponse = self.generateHeaders(200,  filepath) 
                 HTTPresponse += CRLF + CRLF + fileHandler.read()
-                print " Found file. Sending it !"
+                print "Found file. Sending it !"
                 client.send(HTTPresponse)
                 fileHandler.close()
             #If file not found then send 404 message
@@ -132,10 +130,7 @@ class server():
             print  "Unknown HTTP Request method"
              
 
-     # FIXME graceful shutdown when on termination signal
-     # close all sockets
-
-
+# Handling graceful shutdown when on termination signal
 def graceful_shutdown(sig, dummy):
   print "Received an interupt: Shutting down "
   thisServer.shutdown()
