@@ -1,12 +1,17 @@
 # Mrunal Nargunde
 # Id - 800829282
 # email - mnargund@uncc,edu
+# Python Programming 
 
 #!/usr/bin/env python 
 
 """ 
-A simple echo server 
+A simple server 
 """ 
+#FIXME - All errorconditions? 404 vagre? In both put and get?
+
+#FIXME - all error caching in like file open/file not found/file type not valid .. No file name given... For both client and server and both PUT and GET
+#FIXME Http request type invalid
 
 import socket 
 import time
@@ -20,7 +25,8 @@ validHTTPRequestPut = [ 'Put', 'PUT', 'put' ]
 
 
 class server():
-  
+  # Init called when the instance of server is created.
+  # Default port = 60002 if no port specified
   def __init__ (self , port=60002):
     self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
     
@@ -41,13 +47,13 @@ class server():
   def shutdown(self):
     try:
       print("Shutting down the server")
-      self.socket.shutdown(socket.SHUT_RDWR)
+      self.s.shutdown(socket.SHUT_RDWR)
     except Exception as e:
        print "Warning: could not shut down the socket. Maybe it was already closed ? "
 
 
 
-
+  # Identify contentType from the file name
   def getContentType(self,fileName):
     print "Constructing header\n"
     contentType = fileName.split(".")
@@ -70,7 +76,7 @@ class server():
     else:
       return "text/plain"
  
-
+  # generate headers depending on the code and filepath
   def generateHeaders(self,code, filepath):
     print "Constructing header\n"
     if (code == 200):
@@ -79,13 +85,16 @@ class server():
     elif(code == 404):
       h = 'HTTP/1.1 404 Not Found'+ CRLF
       h += 'Connection: close' + CRLF
-
+    else:
+      h = ''
     current_date = time.strftime("%a, %d %b %Y %H:%M:%S",time.localtime())
     h += 'Date: ' + current_date + CRLF
     h += 'Content-Type: ' + self.getContentType(filepath) + CRLF
     h += 'Server: Simple-Python-HTTP-Server' + CRLF + "\n\n"
     return h
 
+  # Listen for a request, Process the request from client, 
+  # Generate a reponse and send it to client.
   def sendResponse(self,sock) :
 
     while 1:
@@ -109,20 +118,20 @@ class server():
                 fileHandler = open(defaultPath+filepath,'r')
                 HTTPresponse = self.generateHeaders(200,  filepath) 
                 HTTPresponse += CRLF + CRLF + fileHandler.read()
-                print " Found file. Sending it !"
+                print " Found file. Sending file = " + filepath
                 client.send(HTTPresponse)
                 fileHandler.close()
             #If file not found then send 404 message
             except (OSError, IOError ) as e :
                 HTTPresponse = self.generateHeaders(400,  filepath) 
-                print "Warning : File NOT Found. Sending error !"
+                print "Warning : File " + filepath +"NOT Found. Sending error !"
                 client.send(HTTPresponse)
             client.close();
       
       
       elif data[0] in validHTTPRequestPut:
             print "Handling Put Request"
-            #If TEXT file then open file & write the contents in the file
+            #open file & write the contents in the file
             filepath = data[1]
             filepath = filepath[1:]
             contentType = filepath.split(".")
@@ -130,13 +139,12 @@ class server():
             try:
               fileHandler = open(defaultPath + "serverPut/" + filepath, 'w')
               payload =  data[6]
-              #print "Writing " + data[6] + "to file"
               fileHandler.write(data[6])
               fileHandler.close()
               print "Writing successful closing socket"
-              HTTPresponse = "HTTP/1.1 201 Created"
+              HTTPresponse = HTTPprotocol + " 201 Created"
               client.send(HTTPresponse)
-              print "Sent response to client. PUT SUCCESSFUL "
+              print "Sent response to client. Put Successful "
             except Exception as e :
               print "Exception while put  " 
               print e
