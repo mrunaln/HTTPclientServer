@@ -8,10 +8,6 @@
 """ 
 A simple server 
 """ 
-#FIXME - All errorconditions? 404 vagre? In both put and get?
-
-#FIXME - all error caching in like file open/file not found/file type not valid .. No file name given... For both client and server and both PUT and GET
-#FIXME Http request type invalid
 
 import socket 
 import time
@@ -33,6 +29,7 @@ class server():
     try :
         print "Lauching HTTP Server\n"
         self.s.bind(("localhost",port))
+        #self.s.close()
     except Exception as e :
       print "ERROR - Failed to socket "
       self.shutdown()
@@ -46,11 +43,10 @@ class server():
 
   def shutdown(self):
     try:
-      print("Shutting down the server")
+      print "Shutting down the server\n"
       self.s.shutdown(socket.SHUT_RDWR)
     except Exception as e:
-       print "Warning: could not shut down the socket. Maybe it was already closed ? "
-
+       print "Warning: Closing the socket "
 
 
   # Identify contentType from the file name
@@ -97,72 +93,75 @@ class server():
   # Generate a reponse and send it to client.
   def sendResponse(self,sock) :
 
-    while 1:
-      print "Listening to request from client \n"
-      sock.listen(1) 
-      client, address = sock.accept() 
-      size = 1025
-      data = client.recv(size) 
-      #Split the DATA to get the type of protocol
-      data = data.split(" ")
-      print "data = " + data[0] + " data [1] " + data[1] 
-      # If Get then open the file and send the data 
-      filepath = data[1]
-      filepath = filepath[1:]
-      print filepath + "\n"
-      contentType = filepath.split(".")
-      if data[0] in validHTTPRequestGet:
-            print "Handling GET Request "
-          
-            try:
-                HTTPresponse = ''
-                fileHandler = open(defaultPath+filepath,'rb')
-                content = fileHandler.read()
-                #fileHandler = open("../WebContent/iamsending.txt",'rb')
-                HTTPresponse = self.generateHeaders(200,  filepath) 
-                HTTPresponse +=  content
-                print " Found file. Sending file = " + filepath
-                client.send(HTTPresponse)
+   try: 
+      while 1:
+        print "Listening to request from client \n"
+        sock.listen(1) 
+        client, address = sock.accept() 
+        size = 1025
+        data = client.recv(size) 
+        #Split the DATA to get the type of protocol
+        data = data.split(" ")
+        print "data = " + data[0] + " data [1] " + data[1] 
+        # If Get then open the file and send the data 
+        filepath = data[1]
+        filepath = filepath[1:]
+        print filepath + "\n"
+        contentType = filepath.split(".")
+        if data[0] in validHTTPRequestGet:
+              print "Handling GET Request "
+            
+              try:
+                  HTTPresponse = ''
+                  fileHandler = open(defaultPath+filepath,'rb')
+                  content = fileHandler.read()
+                  #fileHandler = open("../WebContent/iamsending.txt",'rb')
+                  HTTPresponse = self.generateHeaders(200,  filepath) 
+                  HTTPresponse +=  content
+                  print " Found file. Sending file = " + filepath
+                  client.send(HTTPresponse)
+                  fileHandler.close()
+              #If file not found then send 404 message
+              except (OSError, IOError ) as e :
+                  HTTPresponse = self.generateHeaders(404,  filepath) 
+                  print "Warning : File " + filepath + " NOT Found. Sending error !"
+                  fileHandler = open(defaultPath + "PagenotfoundGitHub.html",'rb')
+                  content = fileHandler.read()
+                  HTTPresponse +=  content
+                  client.send(HTTPresponse)
+                  fileHandler.close()
+              client.close();
+        
+        
+        elif data[0] in validHTTPRequestPut:
+              print "Handling Put Request"
+              #open file & write the contents in the file
+              filepath = data[1]
+              filepath = filepath[1:]
+              contentType = filepath.split(".")
+
+              try:
+                fileHandler = open(defaultPath + "serverPut/" + filepath, 'wb')
+                payload =  data[6]
+                fileHandler.write(data[6])
                 fileHandler.close()
-            #If file not found then send 404 message
-            except (OSError, IOError ) as e :
-                HTTPresponse = self.generateHeaders(400,  filepath) 
-                print "Warning : File " + filepath + " NOT Found. Sending error !"
+                print "Writing successful closing socket"
+                HTTPresponse =  "HTTP/1.1 201 Created"
                 client.send(HTTPresponse)
-            client.close();
-      
-      
-      elif data[0] in validHTTPRequestPut:
-            print "Handling Put Request"
-            #open file & write the contents in the file
-            filepath = data[1]
-            filepath = filepath[1:]
-            contentType = filepath.split(".")
-
-            try:
-              fileHandler = open(defaultPath + "serverPut/" + filepath, 'wb')
-              payload =  data[6]
-              fileHandler.write(data[6])
-              fileHandler.close()
-              print "Writing successful closing socket"
-              HTTPresponse =  "HTTP/1.1 201 Created"
-              client.send(HTTPresponse)
-              print "Sent response to client. Put Successful "
-            except Exception as e :
-              print "Exception while put  " 
-              print e
-            client.close();
-      else:
+                print "Sent response to client. Put Successful "
+              except Exception as e :
+                print "Exception while put  " 
+                print e
+              client.close();
+        else:
             print  "Unknown HTTP Request method"
-             
+   # Handling graceful shutdown when on termination signal
+   except KeyboardInterrupt:
+       print "Keyboard interupt recieved gracefully handling this condition \n\n"
+       self.shutdown()
+       import sys
+       sys.exit(0)
 
-# Handling graceful shutdown when on termination signal
-def graceful_shutdown(sig, dummy):
-  print "Received an interupt: Shutting down "
-  thisServer.shutdown()
-  import sys
-  sys.exit(0)
 
-signal.signal(signal.SIGINT, graceful_shutdown)
 thisServer = server(60002)
 
