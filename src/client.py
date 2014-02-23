@@ -45,8 +45,18 @@ class client():
         sys.exit(0)
       
       # Check if file name is provided 
+      if not sys.argv[4]
+        print "File Name missing"
+        sys.exit(0)
+
+      # Check if file ext is provided 
+      ext = sys.argv[4].split(".") 
+      if not ext:
+        print "File extension missing"
+        sys.exit(0)
+      
       # If file name is '/' then assuming user needs index.html
-      if sys.argv[4] and sys.argv[4] in ['/']:
+      elif sys.argv[4] and sys.argv[4] in ['/']:
         sys.argv[4] = "/index.html"
 
       host = sys.argv[1] 

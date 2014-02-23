@@ -68,29 +68,29 @@ class server():
     elif contentType[1] == "png":
       return "image/png"
     elif contentType[1] == "jpg":
-      return "image/jpg"
+      return "image/jpeg"
     elif contentType[1] == "mp4":
       return "video/mpeg"
     elif contentType[1] == "mp3":
-      return "audio/x-mpeg-3"
+      return "audio/mpeg-3"
     else:
       return "text/plain"
  
   # generate headers depending on the code and filepath
   def generateHeaders(self,code, filepath):
     print "Constructing header\n"
+    h =''
     if (code == 200):
       h = 'HTTP/1.1 200 OK' + CRLF
       h += 'Connection: keep-alive' + CRLF
     elif(code == 404):
       h = 'HTTP/1.1 404 Not Found'+ CRLF
       h += 'Connection: close' + CRLF
-    else:
-      h = ''
+    
     current_date = time.strftime("%a, %d %b %Y %H:%M:%S",time.localtime())
     h += 'Date: ' + current_date + CRLF
     h += 'Content-Type: ' + self.getContentType(filepath) + CRLF
-    h += 'Server: Simple-Python-HTTP-Server' + CRLF + "\n\n"
+    h += 'Server: Simple-Python-HTTP-Server' + "\n\n"
     return h
 
   # Listen for a request, Process the request from client, 
@@ -115,16 +115,19 @@ class server():
             print "Handling GET Request "
           
             try:
-                fileHandler = open(defaultPath+filepath,'r')
+                HTTPresponse = ''
+                fileHandler = open(defaultPath+filepath,'rb')
+                content = fileHandler.read()
+                #fileHandler = open("../WebContent/iamsending.txt",'rb')
                 HTTPresponse = self.generateHeaders(200,  filepath) 
-                HTTPresponse += CRLF + CRLF + fileHandler.read()
+                HTTPresponse +=  content
                 print " Found file. Sending file = " + filepath
                 client.send(HTTPresponse)
                 fileHandler.close()
             #If file not found then send 404 message
             except (OSError, IOError ) as e :
                 HTTPresponse = self.generateHeaders(400,  filepath) 
-                print "Warning : File " + filepath +"NOT Found. Sending error !"
+                print "Warning : File " + filepath + " NOT Found. Sending error !"
                 client.send(HTTPresponse)
             client.close();
       
@@ -137,12 +140,12 @@ class server():
             contentType = filepath.split(".")
 
             try:
-              fileHandler = open(defaultPath + "serverPut/" + filepath, 'w')
+              fileHandler = open(defaultPath + "serverPut/" + filepath, 'wb')
               payload =  data[6]
               fileHandler.write(data[6])
               fileHandler.close()
               print "Writing successful closing socket"
-              HTTPresponse = HTTPprotocol + " 201 Created"
+              HTTPresponse =  "HTTP/1.1 201 Created"
               client.send(HTTPresponse)
               print "Sent response to client. Put Successful "
             except Exception as e :
