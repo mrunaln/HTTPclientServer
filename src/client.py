@@ -9,6 +9,8 @@
 # Client.py 
 
 import sys
+import errno
+from socket import error as socket_error
 
 """ 
 A simple  client 
@@ -24,46 +26,44 @@ class client():
 
   #Function called when instance of the class is created.
   def __init__(self):
-      print "Connecting client to server"
+      print "Setting up socket to communicate from client to server\n"
       s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
       s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-      #Check if 4 arguments are provided before starting all the process
       
+      #Check if 5 arguments are provided before starting all the process
+      if len(sys.argv) < 5:
+        print "Error : Number of commands not sufficient\n"
+        sys.exit(0)
+
       # Check if argument is localhost
-      if sys.argv[1] and sys.argv[1] not in ['localhost']:
+      elif sys.argv[1] and sys.argv[1] not in ['localhost']:
         print "Error: Please enter localhost as your first argument\n"
         sys.exit(0)
       
       # Check if port number is greater than 5000
-      if sys.argv[2] and sys.argv[2] < 5000 :
+      elif sys.argv[2] and sys.argv[2] < 5000 :
         print "Error :" + sys.argv[2] + " is a reserved port\n. Please enter a port higher than 5000\n "
         sys.exit(0)
       
       # Check if valid http request 
-      if sys.argv[3] and sys.argv[3] not in validHTTPRequestGet + validHTTPRequestPut :
+      elif sys.argv[3] and sys.argv[3] not in validHTTPRequestGet + validHTTPRequestPut :
         print "Error : Invalid HTTP Request method " + sys.argv[3] + "\n"
         sys.exit(0)
       
-      # Check if file name is provided 
-      if not sys.argv[4]
-        print "File Name missing"
-        sys.exit(0)
-
-      # Check if file ext is provided 
-      ext = sys.argv[4].split(".") 
-      if not ext:
-        print "File extension missing"
-        sys.exit(0)
-      
-      # If file name is '/' then assuming user needs index.html
-      elif sys.argv[4] and sys.argv[4] in ['/']:
-        sys.argv[4] = "/index.html"
+      # If file path given is / the server will return index.html which is default file
+      # Handling done at server side
 
       host = sys.argv[1] 
-      port = sys.argv[2] 
-      s.connect((host,int(port)))
-      self.sendRequest(s)
-
+      port = sys.argv[2]
+      try:
+        s.connect((host,int(port)))
+        print "Connection from client to server is successfulli\n"
+        self.sendRequest(s)
+      except socket_error as error:
+        print "Connection refused. Maybe server is not started ? \n"
+        sys.exit(0)
+  
+  
   # Function called from init 
   # Sends the request to server
   def sendRequest(self, socket):

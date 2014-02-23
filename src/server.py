@@ -106,6 +106,11 @@ class server():
         # If Get then open the file and send the data 
         filepath = data[1]
         filepath = filepath[1:]
+        
+        if not filepath:
+          filepath = "index.html"
+          print "Will send INDEX.HTML NOW"
+
         print filepath + "\n"
         contentType = filepath.split(".")
         if data[0] in validHTTPRequestGet:
@@ -125,7 +130,7 @@ class server():
               except (OSError, IOError ) as e :
                   HTTPresponse = self.generateHeaders(404,  filepath) 
                   print "Warning : File " + filepath + " NOT Found. Sending error !"
-                  fileHandler = open(defaultPath + "PagenotfoundGitHub.html",'rb')
+                  fileHandler = open(defaultPath + "notfoundpage.html",'rb')
                   content = fileHandler.read()
                   HTTPresponse +=  content
                   client.send(HTTPresponse)

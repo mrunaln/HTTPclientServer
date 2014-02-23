@@ -9,17 +9,18 @@ Learning - client server communication over HTTP/1.1
 * Run server from command line using:
     python server.py
 * To run make the request from client use : 
-    python client.py localhost 60001 Get /fileName.ext
-Supports file types :
-  
-  Images -
-  *png *jpg
-  
-  Audio files -
-  *mp3
-  
-  Video -
-  *mp4
+    python client.py localhost 60001 Get /<filename>
 
-  Text
-  *plain text *html 
+  Supports file types :
+
+    Images -
+    png, jpg
+
+    Audio files -
+    mp3
+
+    Video -
+    mp4
+
+    Text -
+    plain text,html
