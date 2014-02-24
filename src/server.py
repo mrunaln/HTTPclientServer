@@ -9,6 +9,7 @@
 A simple server 
 """ 
 
+import sys
 import socket 
 import time
 import signal
@@ -23,7 +24,7 @@ validHTTPRequestPut = [ 'Put', 'PUT', 'put' ]
 class server():
   # Init called when the instance of server is created.
   # Default port = 60002 if no port specified
-  def __init__ (self , port=60002):
+  def __init__ (self , port):
     self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
     
     try :
@@ -31,13 +32,14 @@ class server():
         self.s.bind(("localhost",port))
         #self.s.close()
     except Exception as e :
-      print "ERROR - Failed to socket "
+      print "ERROR - Failed to connect to the socket "
+      print e
       self.shutdown()
       import sys
       sys.exit(1)
 
-    print "Server successfully working activated\n"
-    print "Press ctrl + c to shutdown and exit\n"
+    print "Server successfully activated on port " + str(port)
+    print "Press ctrl + c to shutdown and exit\n\n"
     self.sendResponse(self.s)
 
 
@@ -167,6 +169,19 @@ class server():
        import sys
        sys.exit(0)
 
+# Check if the port number is given at command line
+if len(sys.argv) < 2:
+  print "Please provide port number greater than 5000 as your argument\n\n"
+  sys.exit(0)
+else :
+  port = int(sys.argv[1])
 
-thisServer = server(60002)
+
+# Check if the port number is above reserved port  
+if port < 5000:
+  print " This might be a reserved port ! \n\n Please provide port number greater than 5000\n\n"
+  sys.exit(0)
+# Start the server at this given port number
+else :
+  thisServer = server(port)
 

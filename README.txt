@@ -20,8 +20,8 @@ Learning - client server communication over HTTP/1.1
   Execution : 
 
 * Run server from command line using:
-   > python server.py
-      Server runs on port 60002 by default.
+   > python server.py 60002
+
 * To run make the request from client use : 
     > python client.py localhost 60002 Get /sample.html
     > python client.py localhost 60002 Put /sample.mp4
