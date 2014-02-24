@@ -1,4 +1,4 @@
-#ctual Mrunal Nargunde
+# Mrunal Nargunde
 # Id - 800829282
 # email - mnargund@uncc,edu
 # Python Programming 
@@ -83,11 +83,13 @@ class server():
       h += 'Connection: keep-alive' + CRLF
     elif(code == 404):
       h = 'HTTP/1.1 404 Not Found'+ CRLF
+      h += 'Content-Type: text/html' + CRLF
       h += 'Connection: close' + CRLF
     
     current_date = time.strftime("%a, %d %b %Y %H:%M:%S",time.localtime())
     h += 'Date: ' + current_date + CRLF
-    h += 'Content-Type: ' + self.getContentType(filepath) + CRLF
+    if (code != 404):
+      h += 'Content-Type: ' + self.getContentType(filepath) + CRLF
     h += 'Server: Simple-Python-HTTP-Server' + "\n\n"
     return h
 
@@ -100,21 +102,33 @@ class server():
         print "Listening to request from client \n"
         sock.listen(1) 
         client, address = sock.accept() 
-        size = 1025
-        data = client.recv(size) 
+        size = 1024
+
+        data = ""
+        temp = client.recv(size)
+        data = temp
+        if(temp[0:3].lower() != "get"):
+          while True:
+            temp = client.recv(size)
+            if temp == None or len(temp) == 0:
+              break
+            data += temp
+
         #Split the DATA to get the type of protocol
         rawdata = data
-        print rawdata + "\n"
         data = data.split(" ")
         # If Get then open the file and send the data 
+        
         filepath = data[1]
         filepath = filepath[1:]
-        
         if not filepath:
           filepath = "index.html"
 
-        print filepath + "\n"
         contentType = filepath.split(".")
+        
+        
+        
+        
         if data[0] in validHTTPRequestGet:
               print "Handling GET Request "
             
@@ -146,14 +160,14 @@ class server():
               filepath = data[1]
               filepath = filepath[1:]
               contentType = filepath.split(".")
+
+
               try:
                 fileHandler = open(defaultPath + "serverPut/" + filepath, 'wb')
-
                 # Parsing the payload obtained from client 
                 splitPutRequest = rawdata.split("\r\n\r\n")
                 fullpayload = splitPutRequest[1]
                 actualpayload = fullpayload.replace("data=", "")
-                
                 fileHandler.write(actualpayload)
                 fileHandler.close()
                 print "Writing successful closing socket"

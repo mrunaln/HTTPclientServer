@@ -83,10 +83,13 @@ class client():
           socket.close() 
           print 'Received:', data
       elif HTTPcommand in validHTTPRequestPut:
+          if filePath == "/" :
+            filePath = "/index.html"
           fileHandler = open("../WebContent" + filePath, "r")
           print "Reading data from file to send payload to server\n"
           payload = fileHandler.read()
-          putRequest =  HTTPcommand + " " + filePath + " " +  HTTPprotocol + CRLF + "Host: my simple client" + CRLF + CRLF +  "data =" + payload
+          fileHandler.close()
+          putRequest =  HTTPcommand + " " + filePath + " " +  HTTPprotocol + CRLF + "Host: my simple client" + CRLF + CRLF +  "data=" + payload
           socket.sendall(putRequest)
           print "Sent data to server\n "
 
