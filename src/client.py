@@ -71,31 +71,25 @@ class client():
       HTTPcommand = sys.argv[3]
       filePath = sys.argv[4]
       if HTTPcommand in validHTTPRequestGet :
-          socket.send(HTTPcommand + " " + filePath + " "+  HTTPprotocol + CRLF + CRLF) 
-          size = 1024 
-          data = socket.recv(size) 
+          socket.send(HTTPcommand + " " + filePath + " "+  HTTPprotocol + CRLF ) 
+          size = 1024
+          data = ""
+          while True :
+            recvBuffer = socket.recv(size)
+            if recvBuffer == None or len(recvBuffer) == 0:
+              break;
+            data += recvBuffer
+
           socket.close() 
           print 'Received:', data
       elif HTTPcommand in validHTTPRequestPut:
           fileHandler = open("../WebContent" + filePath, "r")
           print "Reading data from file to send payload to server\n"
           payload = fileHandler.read()
-          socket.send(
-              HTTPcommand + " " + filePath + " "+  HTTPprotocol + CRLF + 
-              "Host: my simple client\r\n" +
-              "{ \r\n" +
-              payload +
-              "} " + CRLF
-              )
+          putRequest =  HTTPcommand + " " + filePath + " " +  HTTPprotocol + CRLF + "Host: my simple client" + CRLF + CRLF +  "data =" + payload
+          socket.sendall(putRequest)
           print "Sent data to server\n "
-          size = 1024
-          response = " "
-          while True:
-            response = socket.recv(size)
-            if response != " ":
-              break
 
-          print "Response recieved from server = " + response
           socket.close()
       else:  
           print "Bad request"

@@ -1,4 +1,4 @@
-# Mrunal Nargunde
+#ctual Mrunal Nargunde
 # Id - 800829282
 # email - mnargund@uncc,edu
 # Python Programming 
@@ -103,15 +103,15 @@ class server():
         size = 1025
         data = client.recv(size) 
         #Split the DATA to get the type of protocol
+        rawdata = data
+        print rawdata + "\n"
         data = data.split(" ")
-        print "data = " + data[0] + " data [1] " + data[1] 
         # If Get then open the file and send the data 
         filepath = data[1]
         filepath = filepath[1:]
         
         if not filepath:
           filepath = "index.html"
-          print "Will send INDEX.HTML NOW"
 
         print filepath + "\n"
         contentType = filepath.split(".")
@@ -146,18 +146,23 @@ class server():
               filepath = data[1]
               filepath = filepath[1:]
               contentType = filepath.split(".")
-
               try:
                 fileHandler = open(defaultPath + "serverPut/" + filepath, 'wb')
-                payload =  data[6]
-                fileHandler.write(data[6])
+
+                # Parsing the payload obtained from client 
+                splitPutRequest = rawdata.split("\r\n\r\n")
+                fullpayload = splitPutRequest[1]
+                actualpayload = fullpayload.replace("data=", "")
+                
+                fileHandler.write(actualpayload)
                 fileHandler.close()
                 print "Writing successful closing socket"
                 HTTPresponse =  "HTTP/1.1 201 Created"
                 client.send(HTTPresponse)
                 print "Sent response to client. Put Successful "
+              
               except Exception as e :
-                print "Exception while put  " 
+                print "Exception while put request" 
                 print e
               client.close();
         else:
