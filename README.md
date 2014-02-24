@@ -3,8 +3,8 @@ Computer networks assignment -  Python
 Learning - client server communication over HTTP/1.1
 
 * Implementing Get request and Put request
-  Server stores files from put request to location - HTTPlientServer/WebContent/serverPut/ 
-  Server searches for files from get request from location - HTTPlientServer/WebContent/
+  Server stores files from put request to location - HTTPclientServer/WebContent/serverPut/ 
+  Server searches for files from get request from location - HTTPclientServer/WebContent/
 
 * Run server from command line using:
     python server.py
@@ -14,13 +14,13 @@ Learning - client server communication over HTTP/1.1
   Supports file types :
 
     Images -
-    png, jpg
+    png, jpg [Displayed in broswer]
 
     Audio files -
-    mp3
+    mp3 [Downloads audio and can be played from the new location]
 
     Video -
-    mp4
+    mp4 [Plays the video in browser]
 
     Text -
-    plain text,html
+    plain text,html [Printed]
